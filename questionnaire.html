@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Risk Profile{% endblock %}
+{% block heading %}Investor Risk Profile{% endblock %}
+{% block content %}
+<div class="card"><h2>Risk assessment questionnaire</h2>
+  <p class="muted">Answer honestly &ndash; your score decides the volatility band of your allocation.
+     Score below 40 &rarr; Conservative, 40&ndash;70 &rarr; Balanced, above 70 &rarr; Aggressive.</p>
+  {% if profile %}<p class="pill">Current: {{ profile.score }}/100 &middot; {{ profile.category }} &middot; {{ profile.horizon }}</p>{% endif %}
+</div>
+<form method="post" action="{{ url_for('questionnaire') }}">
+  {% for question, options in questions %}
+  {% set outer = loop %}
+  <fieldset class="card question"><legend><span class="qnum">{{ outer.index }}</span>{{ question }}</legend>
+    {% for value, label in options %}
+    <label class="radio"><input type="radio" name="q_{{ outer.index0 }}" value="{{ value }}" required><span>{{ label }}</span></label>
+    {% endfor %}
+  </fieldset>
+  {% endfor %}
+  <button class="btn wide" type="submit">Save risk profile &amp; continue</button>
+</form>
+{% endblock %}

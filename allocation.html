@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}AI Allocation{% endblock %}
+{% block heading %}AI Asset Allocation{% endblock %}
+{% block content %}
+<div class="grid2">
+  <section class="card">
+    <div class="cardhead"><h2>Allocation plan</h2><span class="pill" style="background:{{ band.color }}">{{ category }}</span></div>
+    <p class="muted">{{ band.blurb }}</p>
+    {% if plan %}
+      <div class="metrics">
+        <div><small>EXPECTED RETURN</small><strong>{{ '{:.2f}'.format(plan.expected_return*100) }}%</strong></div>
+        <div><small>VOLATILITY</small><strong>{{ '{:.2f}'.format(plan.volatility*100) }}%</strong></div>
+        <div><small>SHARPE RATIO</small><strong>{{ '{:.2f}'.format(plan.sharpe) }}</strong></div>
+      </div>
+      <p class="small muted">Model: {{ plan.method }} &middot; generated {{ plan.created_at.strftime('%d %b %Y, %H:%M') }}</p>
+    {% else %}<div class="empty"><p>No plan generated yet.</p></div>{% endif %}
+    <form method="post" action="{{ url_for('allocate') }}">
+      <button class="btn wide" type="submit">Generate new AI allocation</button>
+    </form>
+    <p class="muted small">Risk band: {{ '{:.0f}'.format(band.min_vol*100) }}%&ndash;{{ '{:.0f}'.format(band.max_vol*100) }}% volatility,
+       maximum {{ '{:.0f}'.format(band.cap*100) }}% per asset.</p>
+  </section>
+  <section class="card"><div class="cardhead"><h2>Efficient frontier</h2><span class="muted small">Risk vs return</span></div>
+    {% set vols = frontier|map(attribute='vol')|list %}
+    {% set rets = frontier|map(attribute='ret')|list %}
+    {% set xmin = vols|min if vols else 0 %}{% set xmax = vols|max if vols else 1 %}
+    {% set ymin = rets|min if rets else 0 %}{% set ymax = rets|max if rets else 1 %}
+    {% set xs = (xmax-xmin) if xmax>xmin else 1 %}{% set ys = (ymax-ymin) if ymax>ymin else 1 %}
+    {% set dots = [] %}
+    {% for p in frontier %}{% set px = ((p.vol-xmin)/xs*700+40)|round(1) %}
+      {% set py = (240-(p.ret-ymin)/ys*200)|round(1) %}{% set _ = dots.append((px,py)) %}{% endfor %}
+    <svg class="chart" viewBox="0 0 760 280" preserveAspectRatio="none">
+      {% for g in range(1,5) %}<line x1="40" y1="{{ g*50 }}" x2="740" y2="{{ g*50 }}" class="gridline"/>{% endfor %}
+      <line x1="40" y1="240" x2="740" y2="240" stroke="#5b6b7b"/>
+      {% for px,py in dots %}<circle cx="{{ px }}" cy="{{ py }}" r="5" fill="#1b9aaa" opacity="0.75"/>{% endfor %}
+      {% if plan %}<circle cx="{{ ((plan.volatility*100-xmin)/xs*700+40)|round(1) }}" cy="{{ (240-(plan.expected_return*100-ymin)/ys*200)|round(1) }}" r="9" fill="#e8b84b" stroke="#0f2a43" stroke-width="2"/>{% endif %}
+    </svg>
+    <div class="axis"><span>Volatility &rarr;</span><span>Return &uarr;</span></div>
+  </section>
+</div>
+<section class="card"><div class="cardhead"><h2>Recommended weights</h2><span class="muted small">{{ weights|length }} assets</span></div>
+  <table><thead><tr><th>Asset</th><th>Sector</th><th>Target weight</th><th>Allocation</th><th>Target amount</th></tr></thead><tbody>
+  {% for w in weights %}<tr><td><strong>{{ w.symbol }}</strong><br><small class="muted">{{ w.name }}</small></td>
+    <td>{{ w.sector }}</td><td class="mono">{{ '{:.2f}'.format(w.weight) }}%</td>
+    <td><div class="bar"><i style="width:{{ w.weight }}%;background:{{ w.color }}"></i></div></td>
+    <td class="mono">{{ '{:,.2f}'.format(w.target_amount) }}</td></tr>{% else %}
+    <tr><td colspan="5" class="muted">Generate a plan to see recommended weights.</td></tr>{% endfor %}
+  </tbody></table>
+</section>
+{% endblock %}

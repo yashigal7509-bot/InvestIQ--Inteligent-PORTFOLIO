@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Market Data{% endblock %}
+{% block heading %}Market Data Warehouse{% endblock %}
+{% block content %}
+<section class="grid3">
+  <div class="kpi"><small>LATEST DATE</small><strong>{{ last_date }}</strong><span class="muted">Price history</span></div>
+  <div class="kpi"><small>PRICE RECORDS</small><strong>{{ '{:,}'.format(count) }}</strong><span class="muted">Indexed in MySQL / SQLite</span></div>
+  <div class="kpi accent"><small>ASSETS</small><strong>{{ rows|length }}</strong><span class="muted">Equity, ETF, gold, bonds, cash</span></div>
+</section>
+<section class="card"><div class="cardhead"><h2>Instrument master &amp; latest prices</h2>
+  <form method="post" action="{{ url_for('assets_view') }}"><button class="btn" type="submit">Sync latest market data</button></form></div>
+  <div class="scroll"><table><thead><tr><th>Symbol</th><th>Name</th><th>Sector</th><th>Class</th><th>Last price</th><th>1-day change</th><th>30-day trend</th></tr></thead><tbody>
+  {% for a in rows %}{% set p=a.points %}{% set lo=p|min if p else 0 %}{% set hi=p|max if p else 1 %}
+    {% set span=(hi-lo) if hi>lo else 1 %}{% set k=p|length %}{% set spark=[] %}
+    {% for v in p %}{% set x=loop.index0*(90/(k-1 if k>1 else 1)) %}{% set y=32-((v-lo)/span)*26 %}{% set _=spark.append((x|round(1)|string)~','~(y|round(1)|string)) %}{% endfor %}
+    <tr><td><strong>{{ a.symbol }}</strong></td><td>{{ a.name }}</td><td class="muted">{{ a.sector }}</td>
+      <td>{{ a.asset_class }}</td><td class="mono">{{ '{:,.2f}'.format(a.close) }}</td>
+      <td class="mono {{ 'pos' if a.change>=0 else 'neg' }}">{{ '{:+.2f}'.format(a.change) }}%</td>
+      <td><svg viewBox="0 0 90 36" class="spark"><polyline points="{{ spark|join(' ') }}" fill="none"
+        stroke="{{ '#1b9aaa' if a.change>=0 else '#d9603b' }}" stroke-width="2"/></svg></td></tr>{% endfor %}
+  </tbody></table></div>
+</section>
+{% endblock %}

@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+{% block heading %}Overview{% endblock %}
+{% block content %}
+<section class="hero">
+  <div>
+    <span class="tag">CSA0506 &middot; DATABASE MANAGEMENT SYSTEMS PROJECT</span>
+    <h2>Intelligent Investment Portfolio Management <em>with AI-based Asset Allocation</em></h2>
+    <p class="muted">A DBMS-driven platform that turns risk profiling, clean market data and
+       Markowitz mean&ndash;variance optimization into a disciplined, auditable investment plan.</p>
+    <div class="row"><a class="btn" href="{{ url_for('register') }}">Create account</a>
+      <a class="btn outline" href="{{ url_for('login') }}">Sign in</a></div>
+  </div>
+  <div class="hero-card">
+    <h3>How it works</h3>
+    <ol class="steps"><li>Answer the risk questionnaire</li><li>Sync market price history</li>
+      <li>Generate an optimized allocation</li><li>Trade, monitor drift, rebalance</li></ol>
+    <p class="muted small">MySQL-backed ledger &middot; ACID trades &middot; 3NF schema &middot; SQL views</p>
+  </div>
+</section>
+<section class="grid3">
+  <article class="card"><div class="icon teal">01</div><h3>Risk Profiling</h3>
+    <p class="muted">A 10-question weighted score maps every investor to Conservative, Balanced or Aggressive.</p></article>
+  <article class="card"><div class="icon gold">02</div><h3>AI Allocation</h3>
+    <p class="muted">Machine-learned return signals feed a long-only Markowitz optimizer that maximizes Sharpe ratio.</p></article>
+  <article class="card"><div class="icon navy">03</div><h3>Reliable DBMS</h3>
+    <p class="muted">Normalized tables, triggers, views and transactions keep holdings and cash consistent.</p></article>
+</section>
+{% endblock %}

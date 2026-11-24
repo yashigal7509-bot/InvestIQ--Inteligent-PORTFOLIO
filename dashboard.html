@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block heading %}Dashboard{% endblock %}
+{% block content %}
+<section class="grid4">
+  <div class="kpi"><small>PORTFOLIO VALUE</small><strong>Rs {{ '{:,.2f}'.format(total) }}</strong><span class="muted">Cash + investments</span></div>
+  <div class="kpi"><small>INVESTED</small><strong>Rs {{ '{:,.2f}'.format(invested) }}</strong><span class="muted">{{ holdings|length }} assets held</span></div>
+  <div class="kpi"><small>AVAILABLE CASH</small><strong>Rs {{ '{:,.2f}'.format(portfolio.cash) }}</strong><span class="muted">Ready to deploy</span></div>
+  <div class="kpi accent"><small>RISK PROFILE</small><strong>{{ profile.category }}</strong><span class="muted">Score {{ profile.score }}/100 &middot; {{ profile.horizon }}</span></div>
+</section>
+<div class="grid2">
+  <section class="card"><div class="cardhead"><h2>Portfolio value trend</h2><span class="muted small">Last {{ labels|length }} sessions</span></div>
+    {% set w=760 %}{% set h=230 %}{% set minv = values|min if values else 0 %}{% set maxv = values|max if values else 1 %}
+    {% set span = (maxv-minv) if maxv>minv else 1 %}{% set n = values|length %}{% set pts = [] %}
+    {% for v in values %}{% set x = (loop.index0 * (w/(n-1 if n>1 else 1)))|round(1) %}
+      {% set y = (h-24-((v-minv)/span)*(h-48))|round(1) %}{% set _ = pts.append(x~','~y) %}{% endfor %}
+    <svg class="chart" viewBox="0 0 {{ w }} {{ h }}" preserveAspectRatio="none">
+      {% for g in range(1,5) %}<line x1="0" y1="{{ g*(h/5) }}" x2="{{ w }}" y2="{{ g*(h/5) }}" class="gridline"/>{% endfor %}
+      {% if pts %}<polyline points="{{ pts|join(' ') }}" fill="none" stroke="#1b9aaa" stroke-width="3"/>{% endif %}
+    </svg>
+    <div class="axis"><span>{{ labels[0] if labels else '' }}</span><span>{{ labels[-1] if labels else '' }}</span></div>
+  </section>
+  <section class="card"><div class="cardhead"><h2>Target allocation</h2>
+      <a class="link" href="{{ url_for('allocate') }}">Open AI plan &rarr;</a></div>
+    {% if weights %}
+      {% for item in weights %}
+      <div class="barrow"><span class="dot" style="background:{{ item.color }}"></span>
+        <div class="bar-info"><strong>{{ item.symbol }}</strong><div class="bar"><i style="width:{{ item.weight }}%;background:{{ item.color }}"></i></div></div>
+        <span class="mono">{{ '{:.1f}'.format(item.weight) }}%</span></div>
+      {% endfor %}
+      <p class="muted small">Cash reserve: {{ '{:.1f}'.format((allocation|last).value) }}% of portfolio</p>
+    {% else %}<div class="empty"><p>No allocation plan yet.</p><a class="btn" href="{{ url_for('allocate') }}">Generate one</a></div>{% endif %}
+  </section>
+</div>
+<div class="grid2">
+  <section class="card"><div class="cardhead"><h2>Current holdings</h2><a class="link" href="{{ url_for('portfolio_view') }}">View all &rarr;</a></div>
+    <table><thead><tr><th>Asset</th><th>Qty</th><th>Last price</th><th>Value</th><th>P&amp;L</th></tr></thead><tbody>
+    {% for h in holdings[:6] %}<tr><td><strong>{{ h.symbol }}</strong><br><small class="muted">{{ h.name }}</small></td>
+      <td class="mono">{{ '{:,.2f}'.format(h.quantity) }}</td><td class="mono">{{ '{:,.2f}'.format(h.close) }}</td>
+      <td class="mono">{{ '{:,.2f}'.format(h.value) }}</td>
+      <td class="mono {{ 'pos' if h.pnl>=0 else 'neg' }}">{{ '{:+.2f}'.format(h.pnl) }}</td></tr>{% else %}
+      <tr><td colspan="5" class="muted">No holdings yet. <a href="{{ url_for('trade') }}">Place your first trade</a>.</td></tr>{% endfor %}
+    </tbody></table>
+  </section>
+  <section class="card"><div class="cardhead"><h2>Recent transactions</h2><span class="muted small">{{ assets_count }} assets tracked</span></div>
+    <table><thead><tr><th>Date</th><th>Side</th><th>Asset</th><th>Qty</th><th>Price</th></tr></thead><tbody>
+    {% for t in recent %}<tr><td>{{ t.date }}</td><td><span class="badge {{ 'buy' if t.side=='BUY' else 'sell' }}">{{ t.side }}</span></td>
+      <td><strong>{{ t.symbol }}</strong></td><td class="mono">{{ '{:,.2f}'.format(t.quantity|abs) }}</td>
+      <td class="mono">{{ '{:,.2f}'.format(t.price) }}</td></tr>{% else %}
+      <tr><td colspan="5" class="muted">No transactions recorded.</td></tr>{% endfor %}
+    </tbody></table>
+  </section>
+</div>
+{% endblock %}

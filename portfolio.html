@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Portfolio{% endblock %}
+{% block heading %}My Portfolio{% endblock %}
+{% block content %}
+<section class="grid4">
+  <div class="kpi"><small>TOTAL VALUE</small><strong>Rs {{ '{:,.2f}'.format(total) }}</strong><span class="muted">Marked to latest prices</span></div>
+  <div class="kpi"><small>INVESTED</small><strong>Rs {{ '{:,.2f}'.format(invested) }}</strong><span class="muted">{{ holdings|length }} positions</span></div>
+  <div class="kpi"><small>CASH</small><strong>Rs {{ '{:,.2f}'.format(cash) }}</strong><span class="muted">Settled balance</span></div>
+  <div class="kpi accent"><small>LEDGER</small><strong>{{ portfolio.transactions|length }}</strong><span class="muted">ACID transactions</span></div>
+</section>
+<section class="card"><div class="cardhead"><h2>Holdings</h2>
+  <div class="row"><a class="btn outline" href="{{ url_for('rebalance') }}">Rebalance</a><a class="btn" href="{{ url_for('trade') }}">New trade</a></div></div>
+  <table><thead><tr><th>Asset</th><th>Quantity</th><th>Avg cost</th><th>Last price</th><th>Value</th><th>P&amp;L</th><th>Weight</th></tr></thead><tbody>
+  {% for h in holdings %}<tr><td><strong>{{ h.symbol }}</strong><br><small class="muted">{{ h.name }}</small></td>
+    <td class="mono">{{ '{:,.2f}'.format(h.quantity) }}</td><td class="mono">{{ '{:,.2f}'.format(h.avg_cost) }}</td>
+    <td class="mono">{{ '{:,.2f}'.format(h.close) }}</td><td class="mono">{{ '{:,.2f}'.format(h.value) }}</td>
+    <td class="mono {{ 'pos' if h.pnl>=0 else 'neg' }}">{{ '{:+.2f}'.format(h.pnl) }}<br><small>{{ '{:+.2f}'.format(h.pnl_pct) }}%</small></td>
+    <td><div class="bar"><i style="width:{{ h.weight }}%"></i></div><small class="muted">{{ '{:.1f}'.format(h.weight) }}%</small></td></tr>{% else %}
+    <tr><td colspan="7" class="muted">No holdings yet. <a href="{{ url_for('trade') }}">Place a trade</a> or generate an allocation plan.</td></tr>{% endfor %}
+  </tbody></table>
+</section>
+{% endblock %}

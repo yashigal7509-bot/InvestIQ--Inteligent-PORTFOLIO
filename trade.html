@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Trade{% endblock %}
+{% block heading %}Place a Trade{% endblock %}
+{% block content %}
+<div class="grid2">
+  <section class="card"><h2>Order ticket</h2>
+    <p class="muted">Available cash: <strong>Rs {{ '{:,.2f}'.format(cash) }}</strong></p>
+    <form method="post" action="{{ url_for('trade') }}">
+      <label>Asset<select name="asset_id" required>
+        {% for a in assets %}<option value="{{ a.id }}">{{ a.symbol }} &ndash; {{ a.name }} (Rs {{ '{:,.2f}'.format(a.price) }})</option>{% endfor %}
+      </select></label>
+      <label>Side<select name="side"><option value="BUY">BUY</option><option value="SELL">SELL</option></select></label>
+      <label>Quantity<input type="number" name="quantity" step="any" min="0.0001" required placeholder="0.00"></label>
+      <button class="btn wide" type="submit">Execute trade</button>
+    </form>
+    <p class="muted small">Each order writes one ledger row; a database trigger updates holdings atomically.</p>
+  </section>
+  <section class="card"><div class="cardhead"><h2>Market prices</h2><span class="muted small">{{ assets|length }} assets</span></div>
+    <div class="scroll"><table><thead><tr><th>Symbol</th><th>Name</th><th>Last price</th><th>Held</th></tr></thead><tbody>
+    {% for a in assets %}<tr><td><strong>{{ a.symbol }}</strong></td><td class="muted">{{ a.name }}</td>
+      <td class="mono">{{ '{:,.2f}'.format(a.price) }}</td><td class="mono">{{ '{:,.2f}'.format(a.held) }}</td></tr>{% endfor %}
+    </tbody></table></div>
+  </section>
+</div>
+{% endblock %}

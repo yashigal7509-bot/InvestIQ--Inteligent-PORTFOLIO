@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Register{% endblock %}
+{% block heading %}Create Account{% endblock %}
+{% block content %}
+<div class="center"><form class="card form-card" method="post" action="{{ url_for('register') }}">
+  <h2>Start investing intelligently</h2>
+  <p class="muted">A new portfolio with Rs 10,00,000 of virtual cash is created automatically.</p>
+  <label>Full name<input type="text" name="name" required placeholder="Your name"></label>
+  <label>E-mail address<input type="email" name="email" required placeholder="you@example.com"></label>
+  <label>Password<input type="password" name="password" required minlength="6" placeholder="At least 6 characters"></label>
+  <button class="btn wide" type="submit">Create account</button>
+  <p class="muted small">Already registered? <a href="{{ url_for('login') }}">Log in</a></p>
+</form></div>
+{% endblock %}

@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Rebalance{% endblock %}
+{% block heading %}Portfolio Rebalancing{% endblock %}
+{% block content %}
+<section class="card"><h2>Drift analysis</h2>
+  <p class="muted">Compare current weights with the target plan. Any drift above 5% is a rebalance candidate.
+     Cash available: <strong>Rs {{ '{:,.2f}'.format(cash) }}</strong>.</p>
+  <div class="scroll"><table><thead><tr><th>Asset</th><th>Current</th><th>Target</th><th>Drift</th><th>Action</th><th>Qty</th><th>Price</th></tr></thead><tbody>
+  {% for r in rows %}<tr class="{{ 'alert' if r.drift|abs > 5 else '' }}">
+    <td><strong>{{ r.symbol }}</strong><br><small class="muted">{{ r.name }}</small></td>
+    <td class="mono">{{ '{:.2f}'.format(r.current_weight) }}%</td>
+    <td class="mono">{{ '{:.2f}'.format(r.target_weight) }}%</td>
+    <td class="mono {{ 'neg' if r.drift>0 else 'pos' }}">{{ '{:+.2f}'.format(r.drift) }}%</td>
+    <td><span class="badge {{ 'buy' if r.side=='BUY' else 'sell' }}">{{ r.side if r.drift|abs > 5 else 'HOLD' }}</span></td>
+    <td class="mono">{{ '{:,.2f}'.format(r.quantity) if r.drift|abs > 5 else '-' }}</td>
+    <td class="mono">{{ '{:,.2f}'.format(r.price) }}</td></tr>{% endfor %}
+  </tbody></table></div>
+  <form method="post" action="{{ url_for('rebalance') }}" onsubmit="return confirm('Execute all suggested rebalance trades?');">
+    <button class="btn wide" type="submit">Execute rebalance trades</button>
+  </form>
+  <p class="muted small">All executed trades and drift values are written to the REBALANCE_LOG audit table in one ACID transaction.</p>
+</section>
+{% endblock %}
